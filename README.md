@@ -38,5 +38,8 @@ praat_pitch_solver.save_pitch(
 )
 ```
 
+---
+
+
 ### Contact
 For further question please write an email to genis.plaja01@estudiant.upf.edu.
