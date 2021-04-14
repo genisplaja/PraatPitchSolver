@@ -11,7 +11,7 @@ providing a reliable and aligned formatting for the macOS Praat pitch tracks.
 ### Running PraatPitchSolver from terminal
 You can format your Praat pitch file by running the following command lines:
 
-```
+```bash
 cd path/to/PraatPitchSolver
 python3 PraatPitchSolver.py 'path/to/Praat/file.txt' 'path/to/output/file.txt'
 ```
@@ -19,7 +19,7 @@ python3 PraatPitchSolver.py 'path/to/Praat/file.txt' 'path/to/output/file.txt'
 ### Running PraatPitchSolver from Python code
 You would need to move PraatPitchSolver to your project file and import it:
 
-```
+```python
 from PraatPitchSolver import PraatPitchSolver
 
 # Initialize pitch solver instance
