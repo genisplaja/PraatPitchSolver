@@ -3,10 +3,12 @@ import sys
 import numpy as np
 
 class PraatPitchSolver(object):
-	def __init__(self, filename_input, filename_output):
+	def __init__(self, filename_input, filename_output, ignore_start_end_unvoiced=False):
 
 		self.filename_input = filename_input
 		self.filename_output = filename_output
+
+		self.ignore_start_end_unvoiced = ignore_start_end_unvoiced
 
 	def fix_praat_pitch(self):
 		"""
@@ -42,29 +44,36 @@ class PraatPitchSolver(object):
 				if praat_timestamps[i] < 0.0 and praat_timestamps[i+1] > 0.0:
 					no_to_yes.append(i+1)
 
-			# First gap (if any)
-			if silent_first:
-				start_time = no_to_yes[0]
+			if not self.ignore_start_end_unvoiced:
+				# First gap (if any)
+				if silent_first:
+					start_time = no_to_yes[0]
+					no_to_yes = no_to_yes[1:]
+					praat_timestamps[0: start_time+1] = np.linspace(
+						0,
+						praat_timestamps[start_time],
+						num=start_time+1)
+
+				# Last gap (if any)
+				if silent_end:
+					end_time = yes_to_no[-1]
+					yes_to_no = yes_to_no[:-1]
+
+					count = 0
+					for i in reversed(praat_timestamps):
+						count = count + 1
+						if i > 0:
+							break
+
+					time_step = praat_timestamps[end_time-1] - praat_timestamps[end_time-2]
+					for i in np.arange(1, count):
+						praat_timestamps[end_time + i] = praat_timestamps[end_time] + (time_step * i)
+
+			else:
+				new_pitch_values = new_pitch_values[no_to_yes[0]:yes_to_no[-1]+1]
+				praat_timestamps = praat_timestamps[no_to_yes[0]:yes_to_no[-1]+1]
 				no_to_yes = no_to_yes[1:]
-				praat_timestamps[0: start_time+1] = np.linspace(
-					0,
-					praat_timestamps[start_time],
-					num=start_time+1)
-
-			# Last gap (if any)
-			if silent_end:
-				end_time = yes_to_no[-1]
 				yes_to_no = yes_to_no[:-1]
-
-				count = 0
-				for i in reversed(praat_timestamps):
-					count = count + 1
-					if i > 0:
-						break
-
-				time_step = praat_timestamps[end_time-1] - praat_timestamps[end_time-2]
-				for i in np.arange(1, count):
-					praat_timestamps[end_time + i] = praat_timestamps[end_time] + (time_step * i)
 
 			# Mid gaps
 			for i, j in zip(yes_to_no, no_to_yes):
@@ -96,10 +105,13 @@ class PraatPitchSolver(object):
 # Main
 if __name__ == '__main__':
 
+	start_end_flag = True if '--ignore-start-end' in sys.argv else False
+
 	# Initializing pitch solver
 	praat_pitch_solver = PraatPitchSolver(
 		filename_input=sys.argv[1],
 		filename_output=sys.argv[2],
+		ignore_start_end_unvoiced=start_end_flag,
 	)
 
 	# Obtaining fixed pitch
